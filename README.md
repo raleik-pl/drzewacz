@@ -3,5 +3,5 @@ Drzewacz (see Tolkien's [Fangorn/Treebeard](https://en.wikipedia.org/wiki/Treebe
 
 ```
 cd contents
-tree -fhJ --noreport --dirsfirst --sort=name -o ../assets/dirtree.json
+tree -fsDJ --timefmt=%s --noreport -o ../assets/dirtree.json
 ```
