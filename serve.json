@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/browse/**",
+      "destination": "/index.html"
+    }, {
+      "source": "/get/**",
+      "destination": "/index.html"
+    }, {
+      "source": "/search/**",
+      "destination": "/index.html"
+    }
+  ]
+}

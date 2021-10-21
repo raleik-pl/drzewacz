@@ -1,0 +1,140 @@
+:root {
+  --bg-overlay: #cfcdcb;
+  --bg-listing: #efedeb;
+  --bg-row-even: #fbfbfb;
+  --bg-row-hover: #f0f0f0;
+  --bg-card: #fff;
+  --fg-text: #000;
+  --fg-muted: #606060;
+}
+
+body {
+  font-family: Calibri, Verdana, Geneva, Tahoma, sans-serif;
+  background: var(--bg-overlay);
+  padding: 0;
+  padding-top: 15%;
+  margin: 0;
+}
+
+.search {
+}
+
+.breadcrumbs {
+}
+
+.breadcrumb {
+  padding: 1em; 
+  display: inline-block;
+}
+
+.breadcrumb:not(:last-child) {
+  padding-right: 0;
+}
+
+
+.breadcrumb:not(:first-child)::before {
+  content: '>';
+  padding-right: 1em;
+}
+
+.shadow {
+  box-shadow: 0 0.1em 0.2em -0.1em #0000007f;
+}
+
+.listing-container {
+  background: var(--bg-listing);
+  padding: 2em calc(15% + 1em);
+}
+
+.listing {
+  display: grid;
+  grid-template-columns: max-content auto max-content max-content;
+  align-items: center;
+}
+
+.item {
+  padding: 0.5em;
+  text-decoration: none;
+  color: var(--fg-text);
+}
+
+.item-wrapper {
+  display: contents;
+}
+
+.item-wrapper:nth-child(even) > .item {
+  background: var(--bg-row-even);
+}
+
+.item-wrapper:hover > .item {
+  background: var(--bg-row-hover) !important;
+}
+
+.item-icon {
+  border-radius: 1em;
+}
+
+.item-name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  scroll-margin-top: 15em;
+  scroll-margin-bottom: 5em;
+  border-radius: 1em;
+}
+
+.item-size {
+  border-top-left-radius: 1em;
+  border-bottom-left-radius: 1em;
+}
+
+.item-modified {
+  border-top-right-radius: 1em;
+  border-bottom-right-radius: 1em;
+}
+
+.item-right {
+  text-align: right;
+}
+
+.header-container {
+  position: sticky;
+  top: 0;
+  background: var(--bg-overlay);
+  box-shadow: 0 0.5em 1em -0.75em #000000;
+  padding: 1em 15%;
+}
+
+.footer-container {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-overlay);
+  box-shadow: inset 0 0.5em 1em -0.75em #000000;
+  padding: 0.5em 15%;
+}
+
+.card {
+  background: var(--bg-card);
+  padding: 2em;
+  border-radius: 1em;
+}
+
+.card-small {
+  padding: 00em 2em;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.card-darker {
+  background: var(--bg-listing);
+}
+
+.text-small {
+  font-size: small;
+}
+
+.text-muted {
+  color: var(--fg-muted) !important;
+}

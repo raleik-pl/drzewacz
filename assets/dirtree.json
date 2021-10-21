@@ -1,0 +1,6 @@
+[{"type":"directory","name": ".","contents":[
+    {"type":"file","name":"./file.txt","size":0,"time":"1634816681"},
+    {"type":"directory","name":"./folder","size":4096,"time":"1634817208","contents":[
+    ]}
+  ]}
+]
