@@ -1,30 +1,93 @@
 <html>
-  <head>
-    <link rel="stylesheet" href="/assets/stylesheet.css">
-    <link rel="stylesheet" href="/assets/fontawesome/css/fontawesome.min.css">
-    <link rel="stylesheet" href="/assets//fontawesome/css/solid.min.css">
-  </head>
-  <body id="body">
-    <div class="header-container">
-      <div class="card card-darker shadow">
-        <div class="search">
-          <input id="search-input" class="search-input" type="search" placeholder="Search" minlength="3" required/>
-        </div>
-        <div id="breadcrumbs" class="breadcrumbs"></div>
+
+<head>
+  <link rel="stylesheet" href="/assets/stylesheet.css">
+  <link rel="stylesheet" href="/assets/fontawesome/css/fontawesome.min.css">
+  <link rel="stylesheet" href="/assets//fontawesome/css/solid.min.css">
+  <link rel="stylesheet" href="/assets/fontawesome/css/brands.min.css">
+</head>
+
+<body id="body">
+  <div class="header-container">
+    <div class="card card-darker shadow header">
+      <div id="breadcrumbs" class="breadcrumbs header-item-grow"></div>
+      <div class="search header-item text-right">
+        <i class="search-do fas fa-fw fa-search"></i>
+        <input id="search-input" class="search-input" type="search" placeholder="Search"
+          minlength="3" required autocomplete="off" />
+      </div>
+      <div class="sort header-item text-right">
+        <i id="sort-order" class="sort-order fas fa-fw fa-sort-alpha-down"></i>
+        <select id="sort-select" class="sort-select" autocomplete="off">
+          <option value="name">Name</option>
+          <option value="extension">Extension</option>
+          <option value="size">Size</option>
+          <option value="modified">Modified</option>
+        </select>
       </div>
     </div>
-    <div class="listing-container">
-      <div class="listing card shadow" id='listing'>
-      </div>
+  </div>
+  <div class="listing-container">
+    <div class="listing card shadow" id='listing'>
     </div>
-    <div class="footer-container">
-      <div class="card card-darker card-small shadow">
+  </div>
+  <div class="footer-container">
+    <div class="card card-darker card-small shadow footer">
+      <div class="footer-item-1">
         <span>drzewacz</span>
         <span>1</span>
-        <span>&copy; raleik.pl 2021</span>
+      </div>
+      <div class="footer-item-2">
+        <i class="fas fa-fw fa-copyright"></i>
+        <span>raleik.pl 2021</span>
+      </div>
+      <div class="footer-item-2 item-right">
+        <i class="fab fa-fw fa-github"></i>
         <span>raleik-pl/static-file-browser</span>
       </div>
+      <div class="footer-item-1 item-right">
+        <i class="fas fa-fw fa-keyboard"></i>
+      </div>
     </div>
-    <script type="text/javascript" language="javascript" src="/assets/index.js"></script>
-  </body>
+  </div>
+  <div class="keyboard-container card shadow" id="keyboard-container">
+    <div class="keyboard-header">
+      <div class="keyboard-header-title">Keyboard shortcuts</div>
+      <i class="fas fa-fw fa-times keyboard-close" id="keyboard-close"></i>
+    </div>
+    <div class="keyboard-content">
+      <div class="section">
+        <div class="section-header">Navigation</div>
+        <p><span class="key shadow">&uarr;</span>last/previous file or folder</p>
+        <p><span class="key shadow">&darr;</span>first/next file or folder</p>
+        <p><span class="key shadow">&larr;</span>last/previous breadcrumb</p>
+        <p><span class="key shadow">&rarr;</span>first/next breadbrumb</p>
+        <p><span class="key shadow">enter</span>take action</p>
+        <p><span class="key shadow">backspace</span>parent folder</p>
+        <p><span class="key shadow">esc</span>unfocus</p>
+      </div>
+      <div class="section">
+        <div class="section-header">Search</div>
+        <p><span class="key shadow">/</span>search box</p>
+        <p><span class="key shadow">shift</span><span class="key-plus">+</span><span
+            class="key shadow">/</span>last search</p>
+      </div>
+      <div class="section">
+        <div class="section-header">Sort</div>
+        <p><span class="key shadow">N</span>by name</p>
+        <p><span class="key shadow">E</span>by extension</p>
+        <p><span class="key shadow">S</span>by size</p>
+        <p><span class="key shadow">M</span>by modification date</p>
+        <p><span class="key shadow">R</span>reverse sort order</p>
+      </div>
+      <div class="section">
+        <div class="section-header">Display</div>
+        <p><span class="key shadow">K</span>keyboard shortcuts</p>
+        <p><span class="key shadow">U</span>size units</p>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" language="javascript" src="/assets/index.js"></script>
+</body>
+
 </html>

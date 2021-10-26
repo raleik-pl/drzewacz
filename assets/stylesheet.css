@@ -5,7 +5,8 @@
   --bg-row-hover: #f0f0f0;
   --bg-card: #fff;
   --fg-text: #000;
-  --fg-muted: #606060;
+  --fg-muted: #0000007f;
+  --border-radius: 0em;
 }
 
 body {
@@ -14,28 +15,60 @@ body {
   padding: 0;
   padding-top: 15%;
   margin: 0;
+  overflow-y: scroll;
 }
 
 .search {
+  display: inline-block;
+  min-width: max-content;
+}
+
+.search-input {
+  padding: 0.5em;
+  background: none;
+  border: none;
+}
+
+.search-input:focus {
+  outline: none;
+  background: var(--bg-card) !important;
+}
+
+.search-do {
+  cursor: pointer;
 }
 
 .breadcrumbs {
-}
-
-.breadcrumb {
-  padding: 1em; 
   display: inline-block;
 }
 
-.breadcrumb:not(:last-child) {
+.breadcrumb {
+  padding: 0.5em; 
+  display: inline-block;
+  text-decoration: none;
+  color: var(--fg-text);
+  border-radius: var(--border-radius);
+  line-height: 1;
+}
+
+.breadcrumb:hover:not(.nocrumb), .breadcrumb:focus:not(.nocrumb) {
+  background: var(--bg-card) !important;
+  outline: none;
+}
+
+/* .breadcrumb:not(:last-child) {
   padding-right: 0;
-}
+} */
 
 
-.breadcrumb:not(:first-child)::before {
-  content: '>';
-  padding-right: 1em;
-}
+/* .breadcrumb:not(:first-child)::before {
+  content: '\f054';
+  padding-right: var(--border-radius);
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  cursor: default;
+  font-size: small;
+} */
 
 .shadow {
   box-shadow: 0 0.1em 0.2em -0.1em #0000007f;
@@ -66,12 +99,16 @@ body {
   background: var(--bg-row-even);
 }
 
+.item-wrapper:hover {
+}
+
 .item-wrapper:hover > .item {
   background: var(--bg-row-hover) !important;
 }
 
+
 .item-icon {
-  border-radius: 1em;
+  border-radius: var(--border-radius);
 }
 
 .item-name {
@@ -80,17 +117,22 @@ body {
   white-space: nowrap;
   scroll-margin-top: 15em;
   scroll-margin-bottom: 5em;
-  border-radius: 1em;
+  border-radius: var(--border-radius);
+}
+
+.item-name:focus {
+  outline: none;
+  background: var(--bg-row-hover) !important;
 }
 
 .item-size {
-  border-top-left-radius: 1em;
-  border-bottom-left-radius: 1em;
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
 }
 
 .item-modified {
-  border-top-right-radius: 1em;
-  border-bottom-right-radius: 1em;
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
 }
 
 .item-right {
@@ -105,6 +147,17 @@ body {
   padding: 1em 15%;
 }
 
+.header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header-item-grow {
+  flex-grow: 1;
+}
+
 .footer-container {
   position: sticky;
   bottom: 0;
@@ -115,14 +168,27 @@ body {
   padding: 0.5em 15%;
 }
 
+.footer-item-1 {
+  flex-grow: 1;
+}
+
+.footer-item-2 {
+  flex-grow: 2;
+}
+
+.footer {
+  display: flex;
+  flex-direction: row;
+}
+
 .card {
   background: var(--bg-card);
   padding: 2em;
-  border-radius: 1em;
+  border-radius: var(--border-radius);
 }
 
 .card-small {
-  padding: 00em 2em;
+  padding: 0em 2em;
   background: none !important;
   box-shadow: none !important;
 }
@@ -137,4 +203,88 @@ body {
 
 .text-muted {
   color: var(--fg-muted) !important;
+}
+
+.sort {
+  display: inline-block;
+  min-width: max-content;
+}
+
+.sort-select {
+  padding: 0.5em;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.sort-select:focus {
+  outline: none;
+  background: var(--bg-card) !important;
+}
+
+.sort-order {
+  cursor: pointer;
+}
+
+.keyboard-container {
+  position: absolute;
+  top: 5em;
+  bottom: 5em;
+  left: 5em;
+  right: 5em;
+  overflow: auto;
+  display: none;
+}
+
+.keyboard-header {
+  margin: 0;
+  font-size: 2em;
+  padding: 1em;
+  display: flex;
+  flex-direction: row;
+}
+
+.keyboard-header-title {
+  flex-grow: 1;
+}
+
+.keyboard-close {
+  cursor: pointer;
+}
+
+.keyboard-content {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.keyboard-content > div {
+  width: max-content;
+}
+
+.key {
+  border-radius: var(--border-radius);
+  background-color: var(--bg-listing);
+  padding: 0.5em;
+  min-width: 1.25em;
+  text-align: center;
+  display: inline-block;
+}
+
+.key:last-child {
+  margin-right: 1em;
+}
+
+.key-plus {
+  padding-left: 0.25em;
+  padding-right: 0.25em;
+}
+
+.section {
+  padding: 2em;
+}
+
+.section-header {
+  font-size: 1.5em;
+  padding-bottom: 0.5em;
 }

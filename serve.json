@@ -9,6 +9,9 @@
     }, {
       "source": "/search/**",
       "destination": "/index.html"
+    }, {
+      "source": "/keyboard",
+      "destination": "/index.html"
     }
   ]
 }

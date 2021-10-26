@@ -1,10 +1,10 @@
 const CONTENT_PREFIX = '/contents/'
-
 var dirtree, currentNode
+var sortOptions = { by: 'name', order: 1, si: false }
 
 window.onload = () => {
   const req = new XMLHttpRequest()
-  req.open('GET', '/assets/dirtree.json', true) // tree -fhJ --noreport --dirsfirst --sort=name -o dirtree.json
+  req.open('GET', '/assets/dirtree.json?'+Date.now, true) // tree -fsDJ --timefmt=%s --noreport -o ../assets/dirtree.json
   req.onload = (event) => {
     dirtree = JSON.parse(event.target.response)[0]
     router()
@@ -12,26 +12,39 @@ window.onload = () => {
   req.send()
   document.getElementById('body').onclick = actionClick
   document.getElementById('search-input').oninput = searchInput
+  document.getElementById('search-input').onsubmit = searchInput
+  document.getElementById('sort-select').onchange = sortSelect
+  document.getElementById('sort-order').onclick = sortOrder
   window.onpopstate = router
   window.onkeydown = keyboardShortcut
 }
 
 const router = () => {
   if (history.state) {
-    var { action, path } = (JSON.parse(history.state) || {})
+    var { action, path, query } = (JSON.parse(history.state) || {})
   } else {
-    var [ , action, path ] = /\/(\w+)?\/?(.+)?/.exec(decodeURI(location.pathname))
+    var [, action, path] = /\/(\w+)?\/?(.+)?/.exec(decodeURI(location.pathname))
+    var query = decodeURI(location.search.substring(location.search.indexOf('=')+1))
   }
+  path = path ? (history.state ? path : ('./' + path)) : '.'
   switch (action) {
     case undefined:
       goto('browse', '.')
       break
     case 'browse':
-      browse(findNode(path ? (history.state ? path : ('./' + path)) : '.', dirtree))
+      browse(findNode(path, dirtree))
       break
     case 'get':
+      goto('get', path)
+      break
     case 'search':
-        goto(action, path)
+      goto('browse', path)
+      document.getElementById('search-input').value = query
+      goto('search', path, query)
+      break
+    case 'keyboard':
+    case '404':
+      goto(action)
       break
     default:
       err404()
@@ -39,10 +52,10 @@ const router = () => {
   }
 }
 
-const goto = (action, path) => {
+const goto = (action, path, query) => {
   switch (action) {
     case 'browse':
-      history.pushState(JSON.stringify({action: action, path: path}), null, '/'+action+'/'+path)
+      history.pushState(JSON.stringify({ action: action, path: path }), null, '/browse/' + path)
       router()
       break
     case 'get':
@@ -51,8 +64,12 @@ const goto = (action, path) => {
       a.click()
       break
     case 'search':
-      history.pushState(JSON.stringify({action: action, path: path}), null, '/'+action+'/'+path)
-      search(path)
+      history.pushState(JSON.stringify({ action: action, path: path, query: query }), null, '/search/' + path + '?query=' + query)
+      search(path, query)
+      break
+    case 'keyboard':
+      history.pushState(null, null, '/keyboard')
+      keyboard()
       break
   }
 }
@@ -65,20 +82,37 @@ const browse = (tree) => {
     breadcrumbs(tree.name)
     let listing = document.getElementById('listing')
     listing.innerHTML = null
-     tree.contents.slice().sort(treeSort).forEach(node => {
+    tree.contents.slice().sort(treeSort).forEach(node => {
       item(node)
     })
   }
 }
 
-const item = (node, fullPath) => {
+const item = (node, search) => {
   let name = decode(node.name)
   let action = (node.type === 'directory' ? 'browse' : 'get')
   let itemWrapper = document.createElement('div')
   itemWrapper.classList.add('item-wrapper')
 
   let iconItem = document.createElement('i')
-  iconItem.classList.add('item', 'item-icon', 'fas', 'fa-fw', node.type === 'directory' ? 'fa-folder' : 'fa-file', 'text-small', 'text-muted')
+  let icon
+  if (node.type === 'directory') {
+    icon = 'fa-folder'
+  } else {
+    let ext = (name.includes('.') && name.split('.').pop())
+    if (!ext) {
+      icon = 'fa-folder'
+    } else {
+      for (let kind in extensions) {
+        if (extensions[kind].includes(ext)) {
+          icon = kind
+          break
+        }
+      }
+      !icon && (icon = 'fa-file')
+    }
+  }
+  iconItem.classList.add('item', 'item-icon', 'fas', 'fa-fw', icon, 'text-small', 'text-muted')
   iconItem.setAttribute('data-type', node.type)
   iconItem.setAttribute('data-action', action)
   iconItem.setAttribute('data-name', name)
@@ -89,7 +123,25 @@ const item = (node, fullPath) => {
   nameItem.href = '/' + action + '/' + name
   nameItem.setAttribute('data-action', action)
   nameItem.setAttribute('data-name', name)
-  nameItem.innerHTML = fullPath ? name : name.split('/').pop()
+  if (search) {
+    let folders = name.split(/\.?\//)
+    folders.shift()
+    let spans = []
+    let max = folders.length
+    for (let i = 0; i < max; i++) {
+      let span = document.createElement('span')
+      span.innerHTML = folders.shift()
+      spans.push(span)
+      if (folders.length) {
+        let ifa = document.createElement('i')
+        ifa.classList.add('fas', 'fa-fw', 'fa-chevron-right', 'text-small', 'text-muted')
+        spans.push(ifa)
+      }
+    }
+    spans.forEach(s => nameItem.appendChild(s))
+  } else {
+    nameItem.innerHTML = name.split('/').pop()
+  }
   itemWrapper.appendChild(nameItem)
 
   let sizeItem = document.createElement('span')
@@ -105,7 +157,7 @@ const item = (node, fullPath) => {
   modifiedItem.setAttribute('data-time', node.time)
   modifiedItem.setAttribute('data-action', action)
   modifiedItem.setAttribute('data-name', name)
-  modifiedItem.innerHTML = new Date(node.time*1000).toLocaleString()
+  modifiedItem.innerHTML = humanFileDate(node.time * 1000)
   itemWrapper.appendChild(modifiedItem)
 
   let listing = document.getElementById('listing')
@@ -117,6 +169,11 @@ const breadcrumbs = (name, search) => {
   let names = decode(search ? (currentNode || dirtree).name : name).split('/')
   let max = names.length
   for (let i = 0; i < max; i++) {
+    if ((names.length && !search) || (names.length < max)) {
+      let chevron = document.createElement('i')
+      chevron.classList.add('chevron', 'fas', 'fa-fw', 'fa-chevron-right', 'text-small', 'text-muted')
+      crumbs.unshift(chevron)
+    }
     let a = document.createElement('a')
     let path = names.join('/')
     let action = 'browse'
@@ -124,7 +181,7 @@ const breadcrumbs = (name, search) => {
     a.innerHTML = lastName === '.' ? null : lastName
     a.href = ('/' + action + '/' + path)
     a.setAttribute('data-action', action)
-    a.setAttribute('data-name', path)  
+    a.setAttribute('data-name', path)
     a.classList.add('breadcrumb')
     if (lastName === '.') {
       a.classList.add('fas', 'fa-home')
@@ -132,9 +189,12 @@ const breadcrumbs = (name, search) => {
     crumbs.unshift(a)
   }
   if (search) {
+    let glass = document.createElement('i')
+    glass.classList.add('chevron', 'fas', 'fa-fw', 'fa-search', 'text-small', 'text-muted')
+    crumbs.push(glass)
     let query = document.createElement('span')
     query.innerHTML = name
-    query.classList.add('breadcrumb')
+    query.classList.add('breadcrumb', 'nocrumb')
     crumbs.push(query)
   }
   let container = document.getElementById('breadcrumbs')
@@ -148,7 +208,7 @@ const findNode = (name, current) => {
     return current;
   } else {
     let contents = (current.contents || [])
-    for (i = 0; i < contents.length; i ++) {
+    for (i = 0; i < contents.length; i++) {
       currentChild = contents[i];
       result = findNode(name, currentChild);
       if (result !== false) {
@@ -161,14 +221,17 @@ const findNode = (name, current) => {
 
 const searchInput = (event) => {
   clearTimeout(document.searchTimeout)
-  document.searchTimeout = setTimeout(() => goto('search', event.target.value), 500)
+  document.searchTimeout = setTimeout(() => goto('search', (currentNode || dirtree).name, event.target.value), 500)
 }
 
-const search = (input = '') => {
-  if (input.length > 2) {
-    let results = searchNodes(input, currentNode || dirtree)
-    listSearch(input, results)
-  } else {
+const search = (path, query = '') => {
+  if (query.length > 2) {
+    if (currentNode && (path !== currentNode.name)) {
+      var searchNode = findNode(path, dirtree)
+    }
+    let results = searchNodes(query, searchNode || currentNode || dirtree)
+    listSearch(query, results)
+  } else if (query.length === 0) {
     goto('browse', '.')
   }
 }
@@ -180,7 +243,7 @@ const searchNodes = (name, current) => {
     res.push(current)
   }
   let contents = (current.contents || [])
-  for (i = 0; i < contents.length; i ++) {
+  for (i = 0; i < contents.length; i++) {
     currentChild = contents[i];
     let results = searchNodes(name, currentChild);
     res.push(...results);
@@ -223,16 +286,16 @@ const actionClick = (event) => {
  * 
  * @return Formatted string.
  */
-const humanFileSize = (bytes, si=false, dp=1) => {
+const humanFileSize = (bytes, si = sortOptions.si, dp = 1) => {
   const thresh = si ? 1000 : 1024;
   if (Math.abs(bytes) < thresh) {
     return bytes + ' B';
   }
-  const units = si 
-    ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] 
+  const units = si
+    ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
     : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
   let u = -1;
-  const r = 10**dp;
+  const r = 10 ** dp;
   do {
     bytes /= thresh;
     ++u;
@@ -240,54 +303,143 @@ const humanFileSize = (bytes, si=false, dp=1) => {
   return bytes.toFixed(dp) + ' ' + units[u];
 }
 
+const humanFileDate = (time) => {
+  let now = new Date()
+  let then = new Date(time)
+  let toyear = (then.getFullYear() === now.getFullYear())
+  let today = (toyear && (then.getMonth() === now.getMonth()) && (then.getDate() === now.getDate()))
+  let options = {}
+  if (!toyear) {
+    options.year = 'numeric'
+  }
+  if (!today) {
+    options.month = 'short'
+    options.day = 'numeric'
+  } else {
+    options.hour = 'numeric'
+    options.minute = '2-digit'
+    options.second = '2-digit'
+  }
+  return then.toLocaleDateString(navigator.language, options)
+}
+
 const keyboardShortcut = (event) => {
-  console.log(event.code, document.activeElement)
-  switch (event.code) {
-    case 'Backspace':
-      if (!document.activeElement || document.activeElement.id !== 'search-input') {
-        let crumb = [...document.getElementsByClassName('breadcrumb')].slice(-2, -1)[0]
-        crumb && crumb.click()
+  if (!event.ctrlKey) {
+    switch (event.code) {
+      case 'Backspace':
+        if (document.activeElement.id !== 'search-input') {
+          let crumb = [...document.getElementsByClassName('breadcrumb')].slice(-2, -1)[0]
+          crumb && crumb.click()
+          event.preventDefault()
+        }
+        break
+      case 'ArrowUp':
+        if (!document.activeElement.classList.contains('item-name')) {
+          let last = [...document.getElementsByClassName('item-name')].pop()
+          last && last.focus()
+        } else {
+          let sibling = document.activeElement.parentElement.previousElementSibling
+          while (sibling && !sibling.childNodes[1].classList.contains('item-name')) {
+            sibling = sibling.previousElementSibling
+          }
+          sibling && sibling.childNodes[1].focus()
+        }
         event.preventDefault()
-      }
-      break
-    case 'ArrowUp':
-      if (!document.activeElement || !document.activeElement.classList.contains('item-name')) {
-        let last = [...document.getElementsByClassName('item-name')].pop()
-        last && last.focus()
-      } else {
-        let sibling = document.activeElement.parentElement.previousElementSibling
-        while (sibling && !sibling.childNodes[1].classList.contains('item-name')) {
-          sibling = sibling.previousElementSibling
-        } 
-        sibling && sibling.childNodes[1].focus()
-      }
-      event.preventDefault()
-      break
-    case 'ArrowDown':
-      if (!document.activeElement || !document.activeElement.classList.contains('item-name')) {
-        let first = [...document.getElementsByClassName('item-name')].shift()
-        first && first.focus()
-      } else {
-        let sibling = document.activeElement.parentElement.nextElementSibling
-        while (sibling && !sibling.childNodes[1].classList.contains('item-name')) {
-          sibling = sibling.nextElementSibling
-        } 
-        sibling && sibling.childNodes[1].focus()
-      }
-      event.preventDefault()
-      break
-    case 'Slash':
-      if (!document.activeElement || document.activeElement.id !== 'search-input') {
-        document.getElementById('search-input').focus()
-        document.getElementById('search-input').select()
+        break
+      case 'ArrowDown':
+        if (!document.activeElement.classList.contains('item-name')) {
+          let first = [...document.getElementsByClassName('item-name')].shift()
+          first && first.focus()
+        } else {
+          let sibling = document.activeElement.parentElement.nextElementSibling
+          while (sibling && !sibling.childNodes[1].classList.contains('item-name')) {
+            sibling = sibling.nextElementSibling
+          }
+          sibling && sibling.childNodes[1].focus()
+        }
         event.preventDefault()
-      }
-      break      
+        break
+      case 'ArrowLeft':
+        if (document.activeElement.id !== 'search-input') {
+          if (!document.activeElement.classList.contains('breadcrumb')) {
+            let last = [...document.getElementsByClassName('breadcrumb')].filter(e => !e.classList.contains('nocrumb')).pop()
+            last && last.focus()
+          } else {
+            let sibling = document.activeElement.previousElementSibling
+            while (sibling && !sibling.classList.contains('breadcrumb')) {
+              sibling = sibling.previousElementSibling
+            }
+            sibling && sibling.focus()
+          }
+          event.preventDefault()
+        }
+        break
+      case 'ArrowRight':
+        if (document.activeElement.id !== 'search-input') {
+          if (!document.activeElement.classList.contains('breadcrumb')) {
+            let first = [...document.getElementsByClassName('breadcrumb')].filter(e => !e.classList.contains('nocrumb')).shift()
+            first && first.focus()
+          } else {
+            let sibling = document.activeElement.nextElementSibling
+            while (sibling && !sibling.classList.contains('breadcrumb')) {
+              sibling = sibling.nextElementSibling
+            }
+            sibling && sibling.focus()
+          }
+          event.preventDefault()
+        }
+        break
+      case 'Slash':
+        if (document.activeElement.id !== 'search-input') {
+          if (event.shiftKey) {
+            search((currentNode || dirtree).name, document.getElementById('search-input').value)
+          } else {
+            document.getElementById('search-input').focus()
+            document.getElementById('search-input').select()
+            event.preventDefault()
+          }
+        }
+        break
+      case 'KeyN':
+      case 'KeyE':
+      case 'KeyS':
+      case 'KeyM':
+        if (document.activeElement.id !== 'search-input') {
+          document.getElementById('sort-select').value = sortByKey[event.code]
+          sortSelect(sortByKey[event.code])
+        }
+        break
+      case 'KeyR':
+        if (document.activeElement.id !== 'search-input') {
+          sortOrder()
+        }
+        break
+      case 'KeyK':
+        if (document.activeElement.id !== 'search-input') {
+          goto('keyboard')
+        }
+        break
+      case 'Enter':
+      case 'NumpadEnter':
+        if (document.activeElement.id === 'search-input') {
+          search((currentNode || dirtree).name, document.getElementById('search-input').value)
+        }
+        break
+      case 'Escape':
+        document.activeElement.blur()
+        break
+      case 'KeyU':
+        if (document.activeElement.id !== 'search-input') {
+          sortOptions.si = !sortOptions.si
+          router()
+        }
+        break
+    }
   }
 }
 
 const treeSort = (a, b) => {
-  let { by, order } = (document.sortOptions || { by: 'name', order: 1 })
+  let { by, order } = sortOptions
   if (a.type === 'directory' && b.type === 'directory') {
     ret = a.name.localeCompare(b.name)
   } else {
@@ -312,10 +464,75 @@ const treeSort = (a, b) => {
       ret = (a.time > b.time ? 1 : (a.time < b.time ? -1 : 0))
       break
   }
-  return  ret * order
+  return ret * order
+}
+
+const sortSelect = (event) => {
+  sortOptions.by = (event.target ? event.target.value : event)
+  sortIcon()
+  router()
+}
+
+const sortOrder = () => {
+  sortOptions.order = -sortOptions.order
+  sortIcon()
+  router()
+}
+
+const sortIcon = () => {
+  let ifa = document.getElementById('sort-order')
+  ifa.className = ''
+  let icon
+  if (sortOptions.order === 1) {
+    switch (sortOptions.by) {
+      case 'name':
+      case 'extension':
+        icon = 'fa-sort-alpha-down'
+        break
+      case 'size':
+        icon = 'fa-sort-amount-down-alt'
+        break
+      case 'modified':
+        icon = 'fa-sort-numeric-down'
+        break;
+    }
+  } else {
+    switch (sortOptions.by) {
+      case 'name':
+      case 'extension':
+        icon = 'fa-sort-alpha-up-alt'
+        break
+      case 'size':
+        icon = 'fa-sort-amount-up'
+        break
+      case 'modified':
+        icon = 'fa-sort-numeric-up-alt'
+        break;
+    }
+  }
+  ifa.classList.add('fas', 'fa-fw', icon)
 }
 
 const err404 = () => {
   console.error('err404')
 }
 
+const keyboard = () => {
+  document.getElementById('keyboard-container').style.display = 'block'
+}
+
+const extensions = {
+  'fa-file-audio': ['mp3', 'flac', 'wav'],
+  'fa-file-video': ['avi', 'mp4', 'mkv'],
+  'fa-file-image': ['gif', 'jpg', 'png', 'bmp'],
+  'fa-file-pdf': ['pdf'],
+  'fa-file-code': ['xml', 'java', 'js', 'html', 'c', 'cpp', 'css'],
+  'fa-file-archive': ['zip', 'rar', '7zip', '7z', 'tar', 'gz', 'tgz']
+}
+
+const sortByKey = {
+  KeyN: 'name',
+  KeyE: 'extension',
+  KeyS: 'size',
+  KeyM: 'modified'
+}
