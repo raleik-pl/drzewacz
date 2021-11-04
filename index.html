@@ -1,6 +1,8 @@
 <html>
 
 <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=400, viewport-fit=contain">
   <link rel="stylesheet" href="/assets/stylesheet.css">
   <link rel="stylesheet" href="/assets/fontawesome/css/fontawesome.min.css">
   <link rel="stylesheet" href="/assets//fontawesome/css/solid.min.css">
@@ -12,7 +14,7 @@
     <div class="card card-darker shadow header">
       <div id="breadcrumbs" class="breadcrumbs header-item-grow"></div>
       <div class="search header-item text-right">
-        <i class="search-do fas fa-fw fa-search"></i>
+        <i class="fas fa-fw fa-search" id="search-do"></i>
         <input id="search-input" class="search-input" type="search" placeholder="Search"
           minlength="3" required autocomplete="off" />
       </div>
@@ -43,17 +45,17 @@
       </div>
       <div class="footer-item-2 item-right">
         <i class="fab fa-fw fa-github"></i>
-        <span>raleik-pl/static-file-browser</span>
+        <a href="https://github.com/raleik-pl/drzewacz" target="_blank">raleik-pl/drzewacz</a>
       </div>
       <div class="footer-item-1 item-right">
-        <i class="fas fa-fw fa-keyboard"></i>
+        <i class="fas fa-fw fa-keyboard" id="keyboard-show"></i>
       </div>
     </div>
   </div>
   <div class="keyboard-container card shadow" id="keyboard-container">
     <div class="keyboard-header">
       <div class="keyboard-header-title">Keyboard shortcuts</div>
-      <i class="fas fa-fw fa-times keyboard-close" id="keyboard-close"></i>
+      <i class="fas fa-fw fa-times" id="keyboard-close"></i>
     </div>
     <div class="keyboard-content">
       <div class="section">
@@ -62,7 +64,7 @@
         <p><span class="key shadow">&darr;</span>first/next file or folder</p>
         <p><span class="key shadow">&larr;</span>last/previous breadcrumb</p>
         <p><span class="key shadow">&rarr;</span>first/next breadbrumb</p>
-        <p><span class="key shadow">enter</span>take action</p>
+        <p><span class="key shadow">enter</span>action!</p>
         <p><span class="key shadow">backspace</span>parent folder</p>
         <p><span class="key shadow">esc</span>unfocus</p>
       </div>

@@ -34,7 +34,7 @@ body {
   background: var(--bg-card) !important;
 }
 
-.search-do {
+#search-do, #sort-order {
   cursor: pointer;
 }
 
@@ -55,20 +55,6 @@ body {
   background: var(--bg-card) !important;
   outline: none;
 }
-
-/* .breadcrumb:not(:last-child) {
-  padding-right: 0;
-} */
-
-
-/* .breadcrumb:not(:first-child)::before {
-  content: '\f054';
-  padding-right: var(--border-radius);
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  cursor: default;
-  font-size: small;
-} */
 
 .shadow {
   box-shadow: 0 0.1em 0.2em -0.1em #0000007f;
@@ -97,9 +83,6 @@ body {
 
 .item-wrapper:nth-child(even) > .item {
   background: var(--bg-row-even);
-}
-
-.item-wrapper:hover {
 }
 
 .item-wrapper:hover > .item {
@@ -165,7 +148,12 @@ body {
   right: 0;
   background: var(--bg-overlay);
   box-shadow: inset 0 0.5em 1em -0.75em #000000;
-  padding: 0.5em 15%;
+  padding: 1em 15%;
+}
+
+.footer-container a {
+  text-decoration: none;
+  color: var(--fg-text)
 }
 
 .footer-item-1 {
@@ -198,7 +186,7 @@ body {
 }
 
 .text-small {
-  font-size: small;
+  font-size: small !important;
 }
 
 .text-muted {
@@ -227,7 +215,7 @@ body {
 }
 
 .keyboard-container {
-  position: absolute;
+  position: fixed;
   top: 5em;
   bottom: 5em;
   left: 5em;
@@ -248,7 +236,7 @@ body {
   flex-grow: 1;
 }
 
-.keyboard-close {
+#keyboard-show, #keyboard-close {
   cursor: pointer;
 }
 
@@ -287,4 +275,18 @@ body {
 .section-header {
   font-size: 1.5em;
   padding-bottom: 0.5em;
+}
+
+@media all and (max-width: 768px) {
+  .listing-container, .header-container, .footer-container {
+    padding: 0.5em;
+  }
+
+  .card {
+    padding: 0.5em;
+  }
+
+  .breadcrumbs {
+    flex-basis: 100%;
+  }
 }

@@ -13,8 +13,11 @@ window.onload = () => {
   document.getElementById('body').onclick = actionClick
   document.getElementById('search-input').oninput = searchInput
   document.getElementById('search-input').onsubmit = searchInput
+  document.getElementById('search-do').onclick = () => search((currentNode || dirtree).name, document.getElementById('search-input').value)
   document.getElementById('sort-select').onchange = sortSelect
   document.getElementById('sort-order').onclick = sortOrder
+  document.getElementById('keyboard-show').onclick = () => keyboard()
+  document.getElementById('keyboard-close').onclick = () => keyboard(false)
   window.onpopstate = router
   window.onkeydown = keyboardShortcut
 }
@@ -42,7 +45,6 @@ const router = () => {
       document.getElementById('search-input').value = query
       goto('search', path, query)
       break
-    case 'keyboard':
     case '404':
       goto(action)
       break
@@ -66,10 +68,6 @@ const goto = (action, path, query) => {
     case 'search':
       history.pushState(JSON.stringify({ action: action, path: path, query: query }), null, '/search/' + path + '?query=' + query)
       search(path, query)
-      break
-    case 'keyboard':
-      history.pushState(null, null, '/keyboard')
-      keyboard()
       break
   }
 }
@@ -149,7 +147,7 @@ const item = (node, search) => {
   sizeItem.setAttribute('data-size', node.size)
   sizeItem.setAttribute('data-action', action)
   sizeItem.setAttribute('data-name', name)
-  sizeItem.innerHTML = node.type === 'file' ? humanFileSize(node.size) : '&nbsp;'
+  sizeItem.innerHTML = (node.type === 'file' ? humanFileSize(node.size) : '&nbsp;')
   itemWrapper.appendChild(sizeItem)
 
   let modifiedItem = document.createElement('span')
@@ -416,7 +414,7 @@ const keyboardShortcut = (event) => {
         break
       case 'KeyK':
         if (document.activeElement.id !== 'search-input') {
-          goto('keyboard')
+          keyboard()
         }
         break
       case 'Enter':
@@ -427,6 +425,7 @@ const keyboardShortcut = (event) => {
         break
       case 'Escape':
         document.activeElement.blur()
+        keyboard(false)
         break
       case 'KeyU':
         if (document.activeElement.id !== 'search-input') {
@@ -517,8 +516,12 @@ const err404 = () => {
   console.error('err404')
 }
 
-const keyboard = () => {
-  document.getElementById('keyboard-container').style.display = 'block'
+const keyboard = (show = true) => {
+  if (show) {
+    document.getElementById('keyboard-container').style.display = 'block'
+  } else {
+    document.getElementById('keyboard-container').style.display = 'none'
+  }
 }
 
 const extensions = {
